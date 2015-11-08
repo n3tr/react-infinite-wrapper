@@ -4,13 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node compile.js"
   },
   "author": "Jirat Ki. (n3tr)",
   "license": "ISC",
   "dependencies": {
     "react": "^0.14.2",
-    "react-dom": "^0.14.2"
+    "react-dom": "^0.14.2",
+    "stats.js": "mrdoob/stats.js"
   },
   "devDependencies": {
     "babel-core": "^5.8.33",
