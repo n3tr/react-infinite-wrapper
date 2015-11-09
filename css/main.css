@@ -34,8 +34,10 @@
 .shot-preview{
   box-sizing: border-box;
   width: 240px;
+  height: 214px;
   float: left;
   padding: 0 10px 10px;
+  overflow: hidden;
 }
 
 

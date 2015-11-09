@@ -75,14 +75,14 @@ var InfiniteWrapper = React.createClass({
     var paddingBottom = bottomRowToHide * nodeHeight;
     var bottomItemToHide = nodePerRow * bottomRowToHide;
 
-    // console.log('================================');
-    // console.log('startIndex', startIndex);
-    // console.log('paddingTop', paddingTop);
-    // console.log('nodePerRow',nodePerRow);
-    // console.log('offScreenBottom',offScreenBottom);
-    // console.log('bottomRowToHide',bottomRowToHide)
-    // console.log('paddingBottom',paddingBottom);
-    // console.log('bottomItemToHide',bottomItemToHide);
+    console.log('================================');
+    console.log('startIndex', startIndex);
+    console.log('paddingTop', paddingTop);
+    console.log('nodePerRow',nodePerRow);
+    console.log('offScreenBottom',offScreenBottom);
+    console.log('bottomRowToHide',bottomRowToHide)
+    console.log('paddingBottom',paddingBottom);
+    console.log('bottomItemToHide',bottomItemToHide);
 
     return {
       startIndex: startIndex,
@@ -126,6 +126,10 @@ var InfiniteWrapper = React.createClass({
 
     var children = this.props.children || [];
     var lastIndex = children.length - this.state.lastIndexOffset;
+    if(this.state.startIndex === 0 && this.state.lastIndexOffset === 0){
+      lastIndex = this.state.startIndex + 24;
+    }
+
     var inScreenChilden = children.slice(this.state.startIndex, lastIndex);
 
     var style = {

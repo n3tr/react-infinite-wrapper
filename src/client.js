@@ -1,5 +1,5 @@
 
-var DribbbleView = require('./components/DribbbleView.react');
+var DribbbleView = require('./components/DribbbleViewV2.react');
 var React = require('react');
 var ReactDOM = require('react-dom');
 var Stats = require('stats.js');

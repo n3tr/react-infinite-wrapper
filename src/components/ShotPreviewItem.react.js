@@ -8,9 +8,9 @@ var ShotPreviewItem = React.createClass({
       <div className='shot-preview'>
         <div className='shot-preview--content'>
           <div className='shot-preview--image'>
-            <img src='https://d13yacurqjgara.cloudfront.net/users/417531/screenshots/2339037/day2_small_1x.png'/>
+            <img src={this.props.shot.images.normal}></img>
           </div>
-          <h2 className='shot-preview--title'>Hello</h2>
+          <h2 className='shot-preview--title'>{this.props.shot.title}</h2>
         </div>
 
       </div>
