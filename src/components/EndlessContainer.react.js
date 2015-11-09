@@ -6,10 +6,11 @@ var EndlessContainer = React.createClass({
   firstLoad: true,
   getInitialState: function() {
     return {
-      firstIndex: 0,
-      lastIndex: this.props.itemCount < 24 ? this.props.itemCount : 24,
+      startIndex: 0,
+      itemInViewport: this.props.itemCount < 20 ? this.props.itemCount : 20,
       paddingTop: 0,
       paddingBottom: 0,
+      containerHeight: Math.ceil(this.props.itemCount / this.props.itemPerRow) * this.props.itemHeight,
       itemWidth: this.props.itemWidth,
       itemHeight: this.props.itemHeight,
       itemCount: this.props.itemCount,
@@ -17,82 +18,84 @@ var EndlessContainer = React.createClass({
     };
   },
 
-  recalculateViewport: function(){
-
-    var firstIndex;
-    var lastIndex;
+  recalculateViewport: function(state){
+    
+    var startIndex;
+    var itemInViewport;
+    var containerHeight
     var paddingTop;
     var paddingBottom;
 
-    var numberOfRow = Math.ceil(this.state.itemCount /  this.state.itemPerRow);
+    var container = this.refs['endless-containner'];
+    var containerRect = container.getBoundingClientRect();
+    var containnerWidth = container.offsetWidth;
+    var sampleNode = container.childNodes[0];
+    var itemCount = state.itemCount;
 
-    var containner = this.refs['endless-containner'];
-    var itemWidth = this.state.itemWidth;
-    var itemHeight = this.state.itemHeight;
-    var itemCount = this.state.itemCount;
-    var itemPerRow = this.state.itemPerRow;
+    var itemWidth = sampleNode ? sampleNode.offsetWidth : state.itemHeight;
+    var itemHeight = sampleNode ? sampleNode.offsetHeight : state.itemWidth;
+
+    var itemPerRow = Math.floor(containnerWidth / itemWidth);
+    var totalRow = Math.ceil(itemCount / itemPerRow);
 
     // Calculate first index by container's top offsest
-    var containerRect = containner.getBoundingClientRect();
-    var offsetTop = containerRect.top;
-    offsetTop = -Math.round(offsetTop);
-    if (offsetTop < 0) {
-      firstIndex = 0;
-      paddingTop = 0;
-    }else{
-      var topRowToHide = Math.floor(offsetTop / itemHeight) - 1;
+    var offsetTop = -containerRect.top;
+    var topRowToHide;
+    if (offsetTop > 0) {
+      topRowToHide = Math.floor(offsetTop / itemHeight) - 1;
       topRowToHide = topRowToHide >= 0 ? topRowToHide : 0;
       paddingTop = topRowToHide * itemHeight;
-      firstIndex = topRowToHide * itemPerRow;
-    }
-
-    var viewportHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0)
-
-    if (this.firstLoad){
-      this.firstLoad = false;
-      var numRowCanBeFill = Math.ceil(viewportHeight / itemHeight);
-      lastIndex = firstIndex + (numRowCanBeFill * itemPerRow);
-      lastIndex = lastIndex < itemCount ? lastIndex : itemCount;
-      paddingBottom = ((itemCount - lastIndex) / itemPerRow) * itemHeight;
-
+      startIndex = topRowToHide * itemPerRow;
     }else{
-      // Calculate lastIndex
-      var bottomOffset = containerRect.bottom - viewportHeight;
-      bottomOffset = bottomOffset >= 0 ? Math.round(bottomOffset) : 0;
-
-      var bottomRowToHide = Math.floor(bottomOffset / itemHeight) -1
-      bottomRowToHide = bottomRowToHide >= 0 ? bottomRowToHide : 0;
-
-      lastIndex = itemCount - (itemPerRow * bottomRowToHide);
-      paddingBottom = bottomRowToHide * itemHeight;
+      topRowToHide = 0;
+      startIndex = 0;
+      paddingTop = 0;
     }
 
-    return {
-      firstIndex: firstIndex,
-      lastIndex: lastIndex,
-      paddingTop: paddingTop,
-      paddingBottom: paddingBottom
-    };
 
+    // Calcualte lastIndex to be display
+    var viewportHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+    var rowInViewPort = Math.ceil(viewportHeight / itemHeight) + 2; // Always add bottom row
+
+    var itemInViewport = rowInViewPort * itemPerRow;
+    var bottomRowToHide = totalRow - (topRowToHide + rowInViewPort);
+    var paddingBottom = bottomRowToHide * itemWidth;
+    paddingBottom = paddingBottom >= 0 ? paddingBottom : 0;
+
+    var newState =  {
+      startIndex: startIndex,
+      itemInViewport: itemInViewport,
+      paddingTop: paddingTop,
+      paddingBottom: paddingBottom,
+      containerHeight: totalRow * itemHeight,
+      itemWidth: state.itemWidth,
+      itemHeight: state.itemHeight,
+      itemCount: state.itemCount,
+      itemPerRow: state.itemPerRow
+    }
+
+    return newState;
 
   },
 
   handleScroll: function(){
+
     var containner = this.refs['endless-containner'];
     var containerRect = containner.getBoundingClientRect();
+
     var viewportHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0)
     var bottomOffset = containerRect.bottom - viewportHeight;
     if (bottomOffset < this.state.itemHeight * 2) {
       this.props.onScrollToBottom()
     }
 
-    this.setState(this.recalculateViewport());
+    this.setState(this.recalculateViewport(this.state));
   },
 
   componentDidMount: function() {
     window.addEventListener('scroll',this.handleScroll);
     window.addEventListener('resize', this.handleScroll);
-    this.recalculateViewport();
+      this.setState(this.recalculateViewport(this.state));
   },
 
   // componentDidUpdate: function(prevProps, prevState) {
@@ -115,36 +118,31 @@ var EndlessContainer = React.createClass({
   },
 
   componentWillReceiveProps: function(nextProps) {
-
-    this.setState({
-      lastIndex: this.state.lastIndex !== 0 ? this.state.lastIndex : nextProps.itemCount,
-      itemWidth: nextProps.itemWidth,
-      itemHeight: nextProps.itemHeight,
-      itemCount: nextProps.itemCount,
-      itemPerRow: nextProps.itemPerRow
-    });
-    // this.recalculateViewport();
+    this.setState(this.recalculateViewport(nextProps));
   },
+
+
 
   render: function() {
 
-    var count = this.state.itemCount;
-    var firstIndex = this.state.firstIndex;
-    var lastIndex = this.state.lastIndex;
+    var itemCount = this.state.itemCount;
+    var startIndex = this.state.startIndex;
+
 
     var el = [];
-    for (var i = firstIndex; i < lastIndex; i++) {
+    for (var i = startIndex; i < startIndex + this.state.itemInViewport && i < itemCount; i++) {
       var item = this.props.elementAtIndex(i);
       el.push(item);
     }
 
     var style = {
       paddingTop: this.state.paddingTop,
-      paddingBottom: this.state.paddingBottom
+      paddingBottom: this.state.paddingBottom,
+      height:this.state.containerHeight,
+      boxSizing: 'border-box'
     }
 
-
-    // console.log(el.length);
+    console.log(this.state);
 
     return (
       <div className='cf endless-containner' ref='endless-containner' style={style}>
