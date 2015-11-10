@@ -19,7 +19,7 @@ var EndlessContainer = React.createClass({
   },
 
   recalculateViewport: function(state){
-    
+
     var startIndex;
     var itemInViewport;
     var containerHeight
@@ -59,7 +59,7 @@ var EndlessContainer = React.createClass({
 
     var itemInViewport = rowInViewPort * itemPerRow;
     var bottomRowToHide = totalRow - (topRowToHide + rowInViewPort);
-    var paddingBottom = bottomRowToHide * itemWidth;
+    var paddingBottom = bottomRowToHide * itemHeight;
     paddingBottom = paddingBottom >= 0 ? paddingBottom : 0;
 
     var newState =  {
